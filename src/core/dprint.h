@@ -176,6 +176,8 @@ typedef void (*km_log_f)(int, const char *, ...);
 extern km_log_f _km_log_func;
 
 void km_log_func_set(km_log_f f);
+/* Write one fully formatted stderr record per write(2) whenever possible. */
+void ksr_stderr_printf(const char *format, ...);
 
 /** @brief maps log levels to their string name and corresponding syslog level */
 
@@ -286,7 +288,7 @@ void log_prefix_init(void);
 			if(unlikely(log_stderr)) {                                     \
 				if(unlikely(log_color))                                    \
 					dprint_color(__llevel);                                \
-				fprintf(stderr, "%2d(%d) %s: %.*s%s%s%s" fmt, process_no,  \
+				ksr_stderr_printf("%2d(%d) %s: %.*s%s%s%s" fmt, process_no,  \
 						my_pid(),                                          \
 						(lname) ? (lname) : LOG_LEVEL2NAME(__llevel),      \
 						LOGV_PREFIX_LEN, LOGV_PREFIX_STR, (prefix),        \
@@ -359,7 +361,7 @@ void log_prefix_init(void);
 				if(unlikely(log_stderr)) {                                     \
 					if(unlikely(log_color))                                    \
 						dprint_color(__llevel);                                \
-					fprintf(stderr, "%2d(%d) %s: %.*s%s%s%s" fmt, process_no,  \
+					ksr_stderr_printf("%2d(%d) %s: %.*s%s%s%s" fmt, process_no,  \
 							my_pid(),                                          \
 							(lname) ? (lname) : LOG_LEVEL2NAME(__llevel),      \
 							LOGV_PREFIX_LEN, LOGV_PREFIX_STR, (prefix),        \
