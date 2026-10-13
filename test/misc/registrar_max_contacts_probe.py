@@ -35,6 +35,8 @@ suffix = uuid.uuid4().hex[:8]
 server = (args.host, args.port)
 s = socket.socket(socket.AF_INET6 if ip.version == 6 else socket.AF_INET, socket.SOCK_DGRAM)
 s.settimeout(3.0)
+s.bind(("::1" if ip.version == 6 else "127.0.0.1", 0))
+local_host, local_port = s.getsockname()[:2]
 
 def contact(username, n, expires=3600, instance=None):
     address = f"sip:{username}{n}@198.51.100.{n}:5060"
@@ -45,10 +47,12 @@ def contact(username, n, expires=3600, instance=None):
 
 def register(user, contacts, callid=None, seq=1, expected=200):
     callid = callid or uuid.uuid4().hex
-    uri = f"sip:{args.host}:{args.port}"
+    target_host = f"[{args.host}]" if ip.version == 6 else args.host
+    uri = f"sip:{target_host}:{args.port}"
+    via_host = f"[{local_host}]" if ip.version == 6 else local_host
     hdrs = [
         f"REGISTER {uri} SIP/2.0",
-        f"Via: SIP/2.0/UDP 127.0.0.1:5080;branch=z9hG4bK{uuid.uuid4().hex}",
+        f"Via: SIP/2.0/UDP {via_host}:{local_port};branch=z9hG4bK{uuid.uuid4().hex};rport",
         "Max-Forwards: 70",
         f"From: <sip:{user}@example.com>;tag={suffix}",
         f"To: <sip:{user}@example.com>",
